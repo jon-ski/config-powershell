@@ -31,7 +31,7 @@ function y {
 
         # Save to config file and set environment variable
         Set-Content -Path $configFile -Value $userInput -Encoding UTF8
-        $env:YAZI_FILE_ONE = $userInput
+        [Environment]::SetEnvironmentVariable("YAZI_FILE_ONE", $userInput, "User")
     }
 
     $tmp = [System.IO.Path]::GetTempFileName()
