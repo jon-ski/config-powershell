@@ -152,6 +152,15 @@ function rbcp {
     Invoke-Robocopy -Source $Source -Destination $Destination -ExcludeGit:$ExcludeGit -DryRun:$DryRun -Log:$Log
 }
 
+function head {
+    param($Path, $n = 10)
+    Get-Content $Path -Head $n
+}
+
+function tail {
+    param($Path, $n = 10, [switch]$f = $false)
+    Get-Content $Path -Tail $n -Wait:$f
+}
 
 # ==============================================================================
 # Help/Summary
