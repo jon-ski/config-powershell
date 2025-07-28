@@ -90,7 +90,14 @@ function Invoke-Robocopy {
 
     $cmd = "robocopy `"$Source`" `"$Destination`" /R:2 /W:5"
 
-    if ($Mirror) { $cmd += " /MIR" }
+    if ($Mirror) {
+        $confirm = Read-Host "This will mirror (including remove) files in the destination. Are you sure? (y/n)"
+        if ($confirm -ne 'y') {
+            Write-Host "[ABORTED] Confirmation declined." -ForegroundColor Red
+            return
+        }
+        $cmd += " /MIR"
+    }
     if ($ExcludeGit) { $cmd += " /XD .git" }
     if ($DryRun) { $cmd += " /L" }
     if ($Log) { $cmd += " /LOG+:`"$Log`"" }
