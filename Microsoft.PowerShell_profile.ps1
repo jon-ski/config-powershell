@@ -193,7 +193,11 @@ function htmlcopy {
 }
 
 # Zoxide Setup
-Invoke-Expression (& { (zoxide init powershell | Out-String) })
+try {
+    Invoke-Expression (& { (zoxide init powershell | Out-String) })
+} catch {
+    Write-Error "Failed to initialize zoxide, is it installed?"
+}
 
 # ==============================================================================
 # Help/Summary
