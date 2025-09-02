@@ -75,16 +75,6 @@ function prompt {
     return ' '
 }
 
-function head {
-    param($Path, $n = 10)
-    Get-Content $Path -Head $n
-}
-
-function tail {
-    param($Path, $n = 10, [switch]$f = $false)
-    Get-Content $Path -Tail $n -Wait:$f
-}
-
 function htmlcopy {
     [CmdletBinding()]
     param (
