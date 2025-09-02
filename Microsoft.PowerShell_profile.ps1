@@ -75,8 +75,6 @@ function prompt {
     return ' '
 }
 
-$env:YAZI_CONFIG_HOME = "$env:USERPROFILE\.config\yazi\"
-
 function Invoke-Robocopy {
     param (
         [Parameter(Mandatory = $true)][string]$Source,
