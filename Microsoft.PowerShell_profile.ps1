@@ -1,74 +1,77 @@
 $env:EDITOR = "hx" # helix
 
-function prompt {
-    # Powerline glyphs
-    $line_tr = "╮"
-    $line_br = "╯"
-    $line_tl = "╭"
-    $line_br = "╰"
-    $line_v = "│"
-    $line_h = "─"
-    $arrow_bottom_right = "󱞩"
-    $L  = ''   # left rounded cap
-    $R  = ''   # right rounded cap
-    # $Jr = ''
-    $Jr = ''
-    $ico_clock = "󰥔"
-    $ico_dir = ""
-    $dir_sep = ""
+if (-not $script:Prompt_HostName) {
+    $script:Prompt_Hostname = [System.Environment]::MachineName
+}
 
-    # Helpers
+function prompt {
+    <#
+    .SYNOPSIS
+        Two-line Powerline-style prompt with host, time, and compact path.
+    .NOTES
+        Returns a single space so the caret sits after the second-line arrow.
+    #>
+
+    # ── Glyphs
+    $L   = ''     # left rounded cap
+    $R   = ''     # right rounded cap
+    $Jr  = ''     # join (rounded)
+    $IconClock = '󰥔'
+    $IconDir   = ''
+    $Sep       = ''  # path separator + second-line prompt marker
+
+    # ── Predefined Strings
+    $hostname = $script:Prompt_Hostname
+    $timeStr = [DateTime]::UtcNow.ToString("HH:mm:ss") # local time
+
+    # ── Palette (map to your terminal theme)
+    $NameBg="Green";  $NameFg="Black"
+    $TimeBg="Blue";   $TimeFg="Black"
+    $PathBg="Yellow"; $PathFg="Black"
+
+    # ── Style helpers (use PS 7+ $PSStyle)
     function FG([string]$n) { $PSStyle.Foreground."$n" }
     function BG([string]$n) { $PSStyle.Background."$n" }
-    function Seg([string]$text,[string]$bg,[string]$fg) { "$(BG $bg)$(FG $fg) $text $($PSStyle.Reset)" }
-    function Join([string]$prevBg,[string]$nextBg) { "$(BG $prevBg)$(FG $nextBg)$Jr$($PSStyle.Reset)" }
+    function Seg([string]$text,[string]$bg,[string]$fg) { "$(BG $bg)$(FG $fg)$text$($PSStyle.Reset)" }
+    function Join([string]$fromBg,[string]$toBg)        { "$(BG $toBg)$(FG $fromBg)$Jr$($PSStyle.Reset)" }
+    function CapL([string]$bg)                          { "$(FG $bg)$L$($PSStyle.Reset)" }
+    function CapR([string]$bg)                          { "$(FG $bg)$R$($PSStyle.Reset)" }
 
-    # Segment palette (map to your terminal theme)
-    $NameBg="Green"; $NameFg="Black"
-    $TimeBg="Blue";  $TimeFg="Black"
-    $DirBg="Yellow"; $DirFg="Black"
+    # ── Compact path formatter
+    function Format-Path {
+        if ($pwd.Provider.Name -ne 'FileSystem') { return $pwd.Path }
 
-    # Top left bracket thing
-    # Write-Host ($line_tl + $line_h + " ") -NoNewline
-    Write-Host ("`n ") -NoNewline
+        $full  = $pwd.Path
+        $root  = [System.IO.Path]::GetPathRoot($full)
+        $drive = $root.TrimEnd('\','/')
+        $rest  = if ($root.Length -lt $full.Length) { $full.Substring($root.Length) } else { '' }
+        $parts = $rest.Split(@('\','/'), [StringSplitOptions]::RemoveEmptyEntries)
 
-    # Write Host/Name
-    Write-Host $L -ForegroundColor $NameBg -NoNewline
-    Write-Host ("  " + (hostname) + " ") -BackgroundColor $NameBg -ForegroundColor $NameFg -NoNewline
-    Write-Host $Jr -BackgroundColor $TimeBg -ForegroundColor $NameBg -NoNewline
-    
-    # Clock
-    Write-Host (" " + $ico_clock + " ") -BackgroundColor $TimeBg -ForegroundColor $TimeFg -NoNewline
-    Write-Host (Get-Date -Format 'HH:mm:ss') -BackgroundColor $TimeBg -ForegroundColor $TimeFg -NoNewline
-    Write-Host " " -BackgroundColor $TimeBg -NoNewline
-    Write-Host $Jr -BackgroundColor $DirBg -ForegroundColor $TimeBg -NoNewline
-    Write-Host " " -BackgroundColor $DirBg -NoNewline
-
-    # Directory/Path (compact if dir level > 4)
-    $path = (Get-Location).Path
-    if ($pwd.Provider.Name -ne 'FileSystem') {
-        $compact = @($path)
-    } else {
-        $root  = [System.IO.Path]::GetPathRoot($path)
-        $drive = $root.TrimEnd('\')
-        $rest  = $path.Substring($root.Length)
-        $parts = @($rest -split '[\\/]+' | Where-Object { $_ })
         switch ($parts.Count) {
-            0 { $compact = @($drive), $dir_sep }
-            1 { $compact = @($drive, $dir_sep, $parts[0]) }
-            2 { $compact = @($drive, $dir_sep, $parts[0], $dir_sep, $parts[1]) }
-            # 3 { $compact = @($drive,$dir_sep, $parts[0], $dir_sep, $parts[1], $dir_sep, $parts[2]) }
-            default { $compact = @($drive,$dir_sep, '', $dir_sep, $parts[-2],$dir_sep, $parts[-1]) }
+            0 { return "$drive" }
+            1 { return "$drive $Sep $($parts[0])" }
+            2 { return "$drive $Sep $($parts[0]) $Sep $($parts[1])" }
+            default { return "$drive $Sep  $Sep $($parts[-2]) $Sep $($parts[-1])" }
         }
     }
-    Write-Host ($ico_dir + " " + $compact + " ") -BackgroundColor $DirBg -ForegroundColor $DirFg -NoNewline
-    Write-Host $R -ForegroundColor $DirBg -NoNewline
 
-    # Second-Line
-    # Write-Host ("`n" + $line_br + $line_h + "─") -NoNewline
-    Write-Host ("`n") -NoNewline
-    
+    # ── Line 1: host • time • path
+    $line1 =
+        "`n " +
+        (CapL  $NameBg) +
+        (Seg   "  $($hostname) "            $NameBg $NameFg) +
+        (Join  $NameBg $TimeBg) +
+        (Seg   " $IconClock $([DateTime]::Now.ToString('HH:mm:ss')) " $TimeBg $TimeFg) +
+        (Join  $TimeBg $PathBg) +
+        (Seg   " $IconDir $(Format-Path) "  $PathBg $PathFg) +
+        (CapR  $PathBg)
 
+    # ── Line 2: prompt marker
+    $line2 = "`n$Sep"
+
+    # ── Emit
+    Write-Host $line1 -NoNewline
+    Write-Host $line2 -NoNewline
     return ' '
 }
 
