@@ -6,3 +6,5 @@ Modules/*
 !modules/YaziTools/**
 !modules/RobocopyUtils/
 !modules/RobocopyUtils/**
+!modules/htmlcopy/
+!modules/htmlcopy/**
