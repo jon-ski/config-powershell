@@ -41,12 +41,12 @@ function prompt {
     function Format-Path {
         if ($pwd.Provider.Name -ne 'FileSystem') { return $pwd.Path }
 
-        $full  = $pwd.Path
-        $root  = [System.IO.Path]::GetPathRoot($full)
+        $full  = $PWD.Path
+        $root  = [IO.Path]::GetPathRoot($full)
         $drive = $root.TrimEnd('\','/')
         $rest  = if ($root.Length -lt $full.Length) { $full.Substring($root.Length) } else { '' }
-        $parts = $rest.Split(@('\','/'), [StringSplitOptions]::RemoveEmptyEntries)
-
+        $parts = $rest.Split([char[]]"/\", [StringSplitOptions]::RemoveEmptyEntries)
+        
         switch ($parts.Count) {
             0 { return "$drive" }
             1 { return "$drive $Sep $($parts[0])" }
