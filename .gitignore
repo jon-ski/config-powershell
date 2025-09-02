@@ -4,3 +4,5 @@ Modules/*
 # Allow my first-party modules
 !modules/YaziTools/
 !modules/YaziTools/**
+!modules/RobocopyUtils/
+!modules/RobocopyUtils/**
