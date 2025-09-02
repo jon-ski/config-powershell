@@ -1,2 +1,6 @@
-# Ignore system/local/global modules
+# Ignore all modules by default
 Modules/*
+
+# Allow my first-party modules
+!modules/YaziTools/
+!modules/YaziTools/**
