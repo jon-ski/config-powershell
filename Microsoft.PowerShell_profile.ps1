@@ -122,11 +122,3 @@ try {
     Write-Error "Failed to initialize zoxide, is it installed?"
 }
 
-# ==============================================================================
-# Help/Summary
-# ==============================================================================
-
-function profile-help {
-    Write-Host "Available custom commands:" -ForegroundColor Cyan
-    'y, rbpush, rbpull, rbcp' | ForEach-Object { " - $_" }
-}
